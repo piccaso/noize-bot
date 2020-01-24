@@ -1,0 +1,16 @@
+version: "2.3"
+services:
+  noizebot:
+    image: 0xff/noize-bot
+    build: .
+    devices:
+      - "/dev/snd:/dev/snd"
+#    environment:
+#      WebsocketUrl: "wss://mattermost.mydomain.tld/api/v4/websocket"
+#      Token: "<bot auth token>"
+    restart: on-failure
+    read_only: true
+    cap_drop:
+      - ALL
+    tmpfs:
+      - /tmp
