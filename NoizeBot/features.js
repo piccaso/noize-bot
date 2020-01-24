@@ -31,7 +31,7 @@ message.match(/aaa/i) && exec('mpg123', './tracks/wilhelmScream.mp3');
 message.match(/hare|krishna|pray|:innocent:/i) && exec('mpg123', 'http://dl.prokerala.com/downloads/ringtones/files/mp3/hare-krishna-48971.mp3');
 
 // Commands
-message.match(/^say /) && run("/bin/bash", ['-c', 'pico2wave -w /var/local/pico2wave.wav "Look Dave, I can see you\'re really upset about this." | mpg123 -']);
+message.match(/^say /) && run("/bin/bash", ['-c', 'echo "' + args.replace('"', '\\"') + '" | festival --tts']);
 
 var durchfall = message.match(/^durchfall ([0-9]+)/i);
 if (durchfall) {
