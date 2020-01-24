@@ -12,6 +12,7 @@ namespace NoizeBot {
                 .AddCommandLine(Environment.GetCommandLineArgs())
                 .Build();
             bool.TryParse(_config["Verbose"], out Verbose);
+            bool.TryParse(_config["Repl"], out Repl);
         }
 
         private string this[string key] => _config[key];
@@ -19,5 +20,6 @@ namespace NoizeBot {
         public string Token => this[nameof(Token)];
         public string IgnoreChannelsRegex => this[nameof(IgnoreChannelsRegex)];
         public readonly bool Verbose;
+        public readonly bool Repl;
     }
 }

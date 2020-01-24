@@ -2,40 +2,42 @@
 //log("message: " + message);
 //log(`cmd=${cmd}, args=${args}`);
 
-// Smileys local:
-message.match(/:angry:/) && exec('mpg123', './tracks/smileys/angry.mp3');
-message.match(/:blush:/) && exec('mpg123', './tracks/smileys/blush.mp3');
-message.match(/:disappointed:/) && exec('mpg123', './tracks/smileys/disappointed.mp3');
-message.match(/:grimacing:/) && exec('mpg123', './tracks/smileys/grimacing.mp3');
-message.match(/:grin:/) && exec('mpg123', './tracks/smileys/grin.mp3');
-message.match(/:grinning:/) && exec('mpg123', './tracks/smileys/grinning.mp3');
-message.match(/:hankey:|:poop:|:shit:/) && exec('mpg123', './tracks/smileys/hankey.mp3');
-message.match(/:open_mouth:/) && exec('mpg123', './tracks/smileys/open_mouth.mp3');
-message.match(/:rage:/) && exec('mpg123', './tracks/smileys/rage.mp3');
-message.match(/:smile:|:simple_smile:|':slightly_smiling_face:/) && exec('mpg123', './tracks/smileys/smile.mp3');
-message.match(/:stuck_out_tongue:/) && exec('mpg123', './tracks/smileys/stuck_out_tongue.mp3');
-message.match(/:stuck_out_tongue_winking_eye:/) && exec('mpg123', './tracks/smileys/stuck_out_tongue_winking_eye.mp3');
-message.match(/:sunglasses:/) && exec('mpg123', './tracks/smileys/sunglasses.mp3');
-message.match(/:tada:/) && exec('mpg123', './tracks/smileys/tada.mp3');
-message.match(/:thumbsdown:/) && exec('mpg123', './tracks/smileys/thumbsdown.mp3');
-message.match(/:thumbsup:/) && exec('mpg123', './tracks/smileys/thumbsup.mp3');
-message.match(/:wink:/) && exec('mpg123', './tracks/smileys/wink.mp3');
-message.match(/faster/i) && exec('mpg123', './tracks/faster.mp3');
-message.match(/gaudi/i) && exec('mpg123', './tracks/gaudi.mp3');
-message.match(/:birthday:|geburtstag|birthday/i) && exec('mpg123', './tracks/happyBirthday.mp3');
-message.match(/stress/i) && exec('mpg123', './tracks/stress.mp3');
-message.match(/party/i) && exec('mpg123', './tracks/waynesworld.mp3');
-message.match(/aaa/i) && exec('mpg123', './tracks/wilhelmScream.mp3');
+// Smileys
+match(/:angry:/, './tracks/smileys/angry.mp3');
+match(/:blush:/, './tracks/smileys/blush.mp3');
+match(/:disappointed:/, './tracks/smileys/disappointed.mp3');
+match(/:grimacing:/, './tracks/smileys/grimacing.mp3');
+match(/:grin:/, './tracks/smileys/grin.mp3');
+match(/:grinning:/, './tracks/smileys/grinning.mp3');
+match(/:hankey:|:poop:|:shit:/, './tracks/smileys/hankey.mp3');
+match(/:open_mouth:/, './tracks/smileys/open_mouth.mp3');
+match(/:rage:/, './tracks/smileys/rage.mp3');
+match(/:smile:|:simple_smile:|':slightly_smiling_face:/, './tracks/smileys/smile.mp3');
+match(/:stuck_out_tongue:/, './tracks/smileys/stuck_out_tongue.mp3');
+match(/:stuck_out_tongue_winking_eye:/, './tracks/smileys/stuck_out_tongue_winking_eye.mp3');
+match(/:sunglasses:/, './tracks/smileys/sunglasses.mp3');
+match(/:tada:/, './tracks/smileys/tada.mp3');
+match(/:thumbsdown:/, './tracks/smileys/thumbsdown.mp3');
+match(/:thumbsup:/, './tracks/smileys/thumbsup.mp3');
+match(/:wink:/, './tracks/smileys/wink.mp3');
+match(/faster/i, './tracks/faster.mp3');
+match(/gaudi/i, './tracks/gaudi.mp3');
+match(/:birthday:|geburtstag|birthday/i, './tracks/happyBirthday.mp3');
+match(/stress/i, './tracks/stress.mp3');
+match(/party/i, './tracks/waynesworld.mp3');
+match(/aaa/i, './tracks/wilhelmScream.mp3');
+
 
 // Smileys Remote:
-message.match(/hare|krishna|pray|:innocent:/i) && exec('mpg123', 'http://dl.prokerala.com/downloads/ringtones/files/mp3/hare-krishna-48971.mp3');
+match(/hare|krishna|pray|:innocent:/i, 'http://dl.prokerala.com/downloads/ringtones/files/mp3/hare-krishna-48971.mp3');
 
 // Commands
-message.match(/^say /) && run("/bin/bash", ['-c', 'echo "' + args.replace('"', '\\"') + '" | festival --tts']);
-
-var durchfall = message.match(/^durchfall ([0-9]+)/i);
-if (durchfall) {
-    for (var i = 0; i < durchfall[1]; i++) {
-        exec('mpg123', './tracks/smileys/hankey.mp3');
+match(/^say (.*)$/, m => run("/bin/bash", ['-c', `echo "${m[1].replace('"', '\\"')}" | festival --tts`]));
+match(/^play_url (http[^ ]+)$/, m => run('/bin/bash', ['-c', `curl "${m[1].replace('"','\\"')}" | mpg123 -`]));
+match(/^fart_attack ([1-9]{1})/, m => {
+    var playlist = [];
+    for (var i = 0; i < m[1]; i++) {
+        playlist.push('./tracks/smileys/hankey.mp3');
     }
-}
+    run("mpg123", playlist);
+});
