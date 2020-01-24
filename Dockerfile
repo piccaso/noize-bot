@@ -10,7 +10,7 @@ RUN dotnet publish -c release -o /app --no-restore
 
 FROM mcr.microsoft.com/dotnet/core/runtime:3.1
 RUN apt-get update \
- && DEBIAN_FRONTEND=noninteractive apt-get install -y mpg123 \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y mpg123 espeak \
  && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 COPY --from=build /app .

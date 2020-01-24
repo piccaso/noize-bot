@@ -1,9 +1,13 @@
 ﻿using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using Jint;
 using WebsocketClient;
 
 namespace NoizeBot {
@@ -11,6 +15,7 @@ namespace NoizeBot {
         private static CancellationToken _cancellationToken;
         private static Configuration _configuration;
         private static readonly Channel<PostedEvent> PostedChannel = Channel.CreateUnbounded<PostedEvent>();
+        public static Action Shutdown;
 
         private static void Main(string[] args) {
             try {
@@ -18,10 +23,12 @@ namespace NoizeBot {
                 var cts = new CancellationTokenSource();
                 Console.CancelKeyPress += (sender, e) => {
                     if (cts.IsCancellationRequested) return;
+                    Console.WriteLine("Shutdown...");
                     cts.Cancel(false);
                     e.Cancel = true;
                 };
                 _cancellationToken = cts.Token;
+                Shutdown = () => cts.Cancel(false);
                 MainAsync().GetAwaiter().GetResult();
             }
             catch (Exception e) {
@@ -51,24 +58,37 @@ namespace NoizeBot {
             };
             if (_configuration.Verbose) socket.OnJsonMessage += Console.WriteLine;
             await socket.Authenticate(_configuration.Token);
-            var processingTask = Task.Run(Process);
-            await socket.Listen();
-            await processingTask;
+            var processingTask = Process();
+            var listenTask = socket.Listen();
+            await Task.WhenAny(processingTask, listenTask);
         }
 
         private static async Task Process() {
+            var featuresJs = GetEmbeddedResource("NoizeBot.features.js");
             await foreach (var e in PostedChannel.Reader.ReadAllAsync())
                 try {
                     if(string.IsNullOrWhiteSpace(e?.Post?.Message)) continue;
-                    var msg = e.Post.Message.Trim();
-                    if (msg.Contains("Throw up", StringComparison.InvariantCultureIgnoreCase))
-                        throw new Exception(e.Post.Message);
-                    if (msg.StartsWith("mpg123 ")) {
-                        var split = msg.Split(" ");
-                        if (split.Length >= 2) {
-                            Mpg123(split[1..]);
-                        }
+                    var message = e.Post.Message.Trim();
+                    var cmd = string.Empty;
+                    var args = string.Empty;
+                    var split = message.Split(" ", 2);
+                    if (split != null && split.Length == 2) {
+                        cmd = split[0];
+                        args = split[1];
                     }
+
+                    
+                    var engine = new Engine();
+                    engine.SetValue("log", new Action<string>(Console.WriteLine));
+                    engine.SetValue("run", new Action<string, string[]>(Run));
+                    engine.SetValue("exec", new Action<string, string>(Exec));
+                    engine.SetValue("die", Shutdown);
+                    engine.SetValue("message", message);
+                    engine.SetValue("cmd", cmd);
+                    engine.SetValue("args", args);
+                    engine.SetValue("channel", e.ChannelDisplayName);
+                    engine.SetValue("channelId", e.Post.ChannelId);
+                    engine.Execute(featuresJs);
                 }
                 catch (Exception ex) {
                     if (_configuration.Verbose)
@@ -79,11 +99,11 @@ namespace NoizeBot {
                 }
         }
 
-        private static void Mpg123(params string[] args) {
+        private static void Run(string command, string[] args) {
             using var p = new Process {
                 StartInfo = {
                     UseShellExecute = false,
-                    FileName = "mpg123",
+                    FileName = command,
                     CreateNoWindow = false,
                 }
             };
@@ -92,6 +112,27 @@ namespace NoizeBot {
             }
             p.Start();
             p.WaitForExit();
+        }
+
+        private static void Exec(string command, string args) {
+            using var p = new Process {
+                StartInfo = {
+                    UseShellExecute = false,
+                    FileName = command,
+                    CreateNoWindow = false,
+                    Arguments = args,
+                }
+            };
+            p.Start();
+            p.WaitForExit();
+        }
+
+        private static string GetEmbeddedResource(string name) {
+            var assembly = typeof(Program).GetTypeInfo().Assembly;
+            using var resource = assembly.GetManifestResourceStream(name);
+            if (resource == null) return null;
+            using var sr = new StreamReader(resource, Encoding.UTF8);
+            return sr.ReadToEnd();
         }
     }
 }
