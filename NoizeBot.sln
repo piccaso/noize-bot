@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29709.97
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "NoizeBot", "NoizeBot\NoizeBot.csproj", "{A3411BEB-FE69-4E9B-AE57-E815DBFED2A7}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebsocketClient", "WebsocketClient\WebsocketClient.csproj", "{246E3641-2FD2-42C1-87BF-FBF5D8286EB5}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A3411BEB-FE69-4E9B-AE57-E815DBFED2A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A3411BEB-FE69-4E9B-AE57-E815DBFED2A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A3411BEB-FE69-4E9B-AE57-E815DBFED2A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A3411BEB-FE69-4E9B-AE57-E815DBFED2A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{246E3641-2FD2-42C1-87BF-FBF5D8286EB5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{246E3641-2FD2-42C1-87BF-FBF5D8286EB5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{246E3641-2FD2-42C1-87BF-FBF5D8286EB5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{246E3641-2FD2-42C1-87BF-FBF5D8286EB5}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {98798A18-7A45-468A-A60F-AA0A50450DD5}
+	EndGlobalSection
+EndGlobal
