@@ -20,12 +20,12 @@ message.match(/:tada:/) && exec('mpg123', './tracks/smileys/tada.mp3');
 message.match(/:thumbsdown:/) && exec('mpg123', './tracks/smileys/thumbsdown.mp3');
 message.match(/:thumbsup:/) && exec('mpg123', './tracks/smileys/thumbsup.mp3');
 message.match(/:wink:/) && exec('mpg123', './tracks/smileys/wink.mp3');
-message.match(/faster/i) && exec('emg123', './tracks/faster.mp3');
-message.match(/gaudi/i) && exec('emg123', './tracks/gaudi.mp3');
+message.match(/faster/i) && exec('mpg123', './tracks/faster.mp3');
+message.match(/gaudi/i) && exec('mpg123', './tracks/gaudi.mp3');
 message.match(/:birthday:|geburtstag|birthday/i) && exec('emg123', './tracks/happyBirthday.mp3');
-message.match(/stress/i) && exec('emg123', './tracks/stress.mp3');
-message.match(/party/i) && exec('emg123', './tracks/waynesworld.mp3');
-message.match(/aaa/i) && exec('emg123', './tracks/wilhelmScream.mp3');
+message.match(/stress/i) && exec('mpg123', './tracks/stress.mp3');
+message.match(/party/i) && exec('mpg123', './tracks/waynesworld.mp3');
+message.match(/aaa/i) && exec('mpg123', './tracks/wilhelmScream.mp3');
 
 // Smileys Remote:
 message.match(/hare|krishna|pray|:innocent:/i) && exec('mpg123', 'http://dl.prokerala.com/downloads/ringtones/files/mp3/hare-krishna-48971.mp3');
