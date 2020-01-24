@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -65,9 +66,18 @@ namespace NoizeBot {
 
         private static async Task Process() {
             var featuresJs = GetEmbeddedResource("NoizeBot.features.js");
+            Regex ignoreChannelsRegex = null;
+            if (!string.IsNullOrWhiteSpace(_configuration.IgnoreChannelsRegex)) {
+                ignoreChannelsRegex = new Regex(_configuration.IgnoreChannelsRegex);
+            }
             await foreach (var e in PostedChannel.Reader.ReadAllAsync())
                 try {
                     if(string.IsNullOrWhiteSpace(e?.Post?.Message)) continue;
+
+                    if (ignoreChannelsRegex != null && !string.IsNullOrWhiteSpace(e.ChannelDisplayName)) {
+                        if(ignoreChannelsRegex.Match(e.ChannelDisplayName).Success) continue;
+                    }
+
                     var message = e.Post.Message.Trim();
                     var cmd = string.Empty;
                     var args = string.Empty;
@@ -77,7 +87,6 @@ namespace NoizeBot {
                         args = split[1];
                     }
 
-                    
                     var engine = new Engine();
                     engine.SetValue("log", new Action<string>(Console.WriteLine));
                     engine.SetValue("run", new Action<string, string[]>(Run));

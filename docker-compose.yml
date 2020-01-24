@@ -8,6 +8,7 @@ services:
 #    environment:
 #      WebsocketUrl: "wss://mattermost.mydomain.tld/api/v4/websocket"
 #      Token: "<bot auth token>"
+#      IgnoreChannelsRegex: "office|lobby"
     restart: on-failure
     read_only: true
     cap_drop:
