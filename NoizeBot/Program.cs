@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -111,7 +109,7 @@ namespace NoizeBot {
 
             var engine = new Engine();
             engine.SetValue("log", new Action<string>(Console.WriteLine));
-            engine.SetValue("run", new Action<string, string[]>((c, a) => Run(c, null, a)));
+            engine.SetValue("run", new Action<string, string[]>(Run));
             engine.SetValue("exec", new Action<string, string>(Exec));
             engine.SetValue("die", Shutdown);
             engine.SetValue("message", message);
@@ -135,24 +133,18 @@ namespace NoizeBot {
 
         private const int ProcessTimeoutMilliseconds = 1000 * 60 * 3;
 
-        private static void Run(string command, byte[] inBytes = null, string[] args = null) {
+        private static void Run(string command, string[] args = null) {
             using var p = new Process {
                 StartInfo = {
                     UseShellExecute = false,
                     FileName = command,
                     CreateNoWindow = false,
-                    RedirectStandardInput = inBytes != null && inBytes.Any(),
                 }
             };
             foreach (var arg in args ?? Array.Empty<string>()) {
                 p.StartInfo.ArgumentList.Add(arg);
             }
             p.Start();
-            if (p.StartInfo.RedirectStandardInput) {
-                p.StandardInput.AutoFlush = true;
-                p.StandardInput.Write(inBytes);
-            }
-
             if (!p.WaitForExit(ProcessTimeoutMilliseconds)) {
                 p.Kill(true);
             };
@@ -179,34 +171,6 @@ namespace NoizeBot {
             if (resource == null) return null;
             using var sr = new StreamReader(resource, Encoding.UTF8);
             return sr.ReadToEnd();
-        }
-
-        //broken
-        private static void Mpg123Url(string url) {
-            var data = DownloadData(url);
-            Run("mpg123", data, new[] {"-"});
-        }
-
-        private static readonly IDictionary<string, byte[]> Downloads = new Dictionary<string, byte[]>();
-        private static byte[] DownloadData(string url) {
-            if (string.IsNullOrWhiteSpace(url)) throw new ArgumentException(url);
-            if (Downloads.TryGetValue(url, out var data)) {
-                return data;
-            }
-            using var wc = new WebClient();
-            wc.DownloadProgressChanged += (sender, args) => {
-                Console.WriteLine($"Downloading {args.ProgressPercentage}%");
-            };
-            wc.DownloadDataCompleted += (sender, args) => {
-                Console.WriteLine($"Download completed.");
-            };
-            data = wc.DownloadData(url);
-            if (data != null && data.Any()) {
-                Downloads[url] = data;
-                Console.WriteLine($"Download size:{data.Length}");
-            }
-            
-            return data;
         }
     }
 }
