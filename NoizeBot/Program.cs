@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -111,6 +112,7 @@ namespace NoizeBot {
             engine.SetValue("log", new Action<string>(Console.WriteLine));
             engine.SetValue("run", new Action<string, string[]>(Run));
             engine.SetValue("exec", new Action<string, string>(Exec));
+            engine.SetValue("tts", new Action<string>(Tts));
             engine.SetValue("die", Shutdown);
             engine.SetValue("message", message);
             engine.SetValue("cmd", cmd);
@@ -171,6 +173,31 @@ namespace NoizeBot {
             if (resource == null) return null;
             using var sr = new StreamReader(resource, Encoding.UTF8);
             return sr.ReadToEnd();
+        }
+
+
+        private static void Tts(string msg) {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+                TtsWin(msg);
+            }
+            else {
+                // bsd and osx... good luck :)
+                TtsLinux(msg);
+            }
+        }
+
+        private static void TtsLinux(string msg) {
+            msg = msg?.Replace("\"", "\\\"") ?? "";
+            Run("bash", new[] {"-c", $"echo \"{msg}\" | festival --tts "});
+        }
+
+        private static void TtsWin(string msg) {
+            msg = msg?.Replace("'","") ?? "";
+            var args = new[] {
+                "-Command",
+                $"Add-Type –AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('{msg}');"
+            };
+            Run("PowerShell", args);
         }
     }
 }

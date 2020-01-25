@@ -38,7 +38,7 @@ match(/Schlafn|Schlofn|Hackln/i, 'tracks/hackln.mp3');
 
 
 // Commands (wip)
-match(/^nb_say (.*)$/, m => run("/bin/bash", ['-c', `echo "${m[1].replace('"', '\\"')}" | festival --tts`]));
+match(/^nb_say (.*)$/, m => tts(m[1]));
 match(/^nb_play_url (http[^ ]+)$/, m => run('/bin/bash', ['-c', `curl "${m[1].replace('"','\\"')}" | mpg123 -`]));
 match(/^nb_fart_attack ([1-9]{1})/, m => {
     var playlist = [];
