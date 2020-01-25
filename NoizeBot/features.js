@@ -1,4 +1,4 @@
-﻿// Smileys
+﻿// Smileys - regex must match a single word
 register(/:angry:/, './tracks/smileys/angry.mp3');
 register(/:blush:/, './tracks/smileys/blush.mp3');
 register(/:disappointed:/, './tracks/smileys/disappointed.mp3');
@@ -31,10 +31,9 @@ register(/balls|nukem/i, 'tracks/ballsOfSteel.mp3');
 register(/fake/i, 'tracks/fakeNews.mp3');
 register(/slacker/i, 'tracks/slacker.mp3');
 register(/Schlafn|Schlofn|Hackln/i, 'tracks/hackln.mp3');
-register(/ahmen|:church:/i, 'tracks/soSayWeAll.mp3');
+register(/ahmen|chant|:church:/i, 'tracks/soSayWeAll.mp3');
 register(/facebook|fb\.com/i, 'tracks/facebook.mp3');
 register(/windows/i, 'tracks/windows.mp3');
-register(/chant/i, 'tracks/soSayWeAll.mp3');
 register(/ibiza|fpö|fpoe|strache/i, 'tracks/ibiza.mp3');
 register(/cloud|azure|aws|geklaut|diebstahl|hinterziehung/i, 'tracks/cloud.mp3');
 register(/kaelte|kälte|winter/i, 'tracks/kaelte.mp3');
@@ -43,9 +42,11 @@ register(/engage/i, 'tracks/engage.mp3');
 register(/limit/i, 'tracks/limit.mp3');
 register(/space/i, 'tracks/space.mp3');
 register(/money/i, 'tracks/money.mp3');
+register(/try/i, 'tracks/try.mp3');
+register(/yoda/i, 'tracks/yoda.mp3');
 
 
-// Commands (wip)
+// Commands - regex must match a full message
 match(/^nb_say ([\s\S]*)$/, m => tts(m[1]));
 match(/^google_say ([\s\S]*)$/, m => googleTts(m[1], "en"));
 match(/^google_(sag|sprich) ([\s\S]*)$/, m => googleTts(m[2], "de"));
