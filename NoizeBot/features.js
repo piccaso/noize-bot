@@ -39,6 +39,9 @@ register(/cloud|azure|aws|geklaut|diebstahl|hinterziehung/i, 'tracks/cloud.mp3')
 register(/kaelte|kälte|winter/i, 'tracks/kaelte.mp3');
 register(/hoschi/i, 'tracks/hoschi.mp3');
 register(/engage/i, 'tracks/engage.mp3');
+register(/limit/i, 'tracks/limit.mp3');
+register(/space/i, 'tracks/space.mp3');
+register(/money/i, 'tracks/money.mp3');
 
 
 // Commands (wip)
