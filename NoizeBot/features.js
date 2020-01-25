@@ -34,6 +34,7 @@ register(/Schlafn|Schlofn|Hackln/i, 'tracks/hackln.mp3');
 register(/ahmen|:church:/i, 'tracks/soSayWeAll.mp3');
 register(/facebook|fb\.com/i, 'tracks/facebook.mp3');
 register(/windows/i, 'tracks/windows.mp3');
+register(/chant/i, 'tracks/soSayWeAll.mp3');
 register(/ibiza|fpö|fpoe|strache/i, 'tracks/ibiza.mp3');
 register(/cloud|azure|aws|geklaut|diebstahl|hinterziehung/i, 'tracks/cloud.mp3');
 register(/kaelte|kälte|winter/i, 'tracks/kaelte.mp3');
@@ -45,6 +46,8 @@ register(/money/i, 'tracks/money.mp3');
 
 
 // Commands (wip)
-match(/so say we all/i, 'tracks/soSayWeAll.mp3');
-match(/^nb_say (.*)$/, m => tts(m[1]));
+match(/^nb_say ([\s\S]*)$/, m => tts(m[1]));
+match(/^google_say ([\s\S]*)$/, m => googleTts(m[1], "en"));
+match(/^google_(sag|sprich) ([\s\S]*)$/, m => googleTts(m[2], "de"));
+match(/^google_tts_([a-z]{1,4}) ([\s\S]*)/, m => googleTts(m[2], m[1]));
 match(/^nb_play_url (http[^ ]+)$/, m => playUrl(m[1]));

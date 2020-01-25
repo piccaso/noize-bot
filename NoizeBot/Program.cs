@@ -5,11 +5,13 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using System.Web;
 using Jint;
 using WebsocketClient;
 
@@ -110,17 +112,18 @@ namespace NoizeBot {
             }
 
             var engine = new Engine();
-            engine.SetValue("log", new Action<string>(Console.WriteLine));
+            engine.SetValue("log", new Action<object>(Console.WriteLine));
             engine.SetValue("run", new Action<string, string[]>(Run));
-            engine.SetValue("exec", new Action<string, string>(Exec));
             engine.SetValue("tts", new Action<string>(Tts));
             engine.SetValue("playUrl", new Action<string>(PlayUrl));
+            engine.SetValue("googleTts", new Action<string, string>(GoogleTts));
             engine.SetValue("die", Shutdown);
             engine.SetValue("message", message);
             engine.SetValue("cmd", cmd);
             engine.SetValue("args", args);
             engine.SetValue("channel", channelDisplayName);
             engine.SetValue("channelId", channelId);
+            engine.SetValue("verbose", _configuration.Verbose);
             engine.Execute(LibJs);
             engine.Execute(FeaturesJs);
             engine.Invoke("processMatches");
@@ -160,21 +163,6 @@ namespace NoizeBot {
             foreach (var arg in args ?? Array.Empty<string>()) {
                 p.StartInfo.ArgumentList.Add(arg);
             }
-            p.Start();
-            if (!p.WaitForExit(ProcessTimeoutMilliseconds)) {
-                p.Kill(true);
-            };
-        }
-
-        private static void Exec(string command, string args) {
-            using var p = new Process {
-                StartInfo = {
-                    UseShellExecute = false,
-                    FileName = command,
-                    CreateNoWindow = false,
-                    Arguments = args,
-                }
-            };
             p.Start();
             if (!p.WaitForExit(ProcessTimeoutMilliseconds)) {
                 p.Kill(true);
@@ -226,6 +214,13 @@ namespace NoizeBot {
             var c = IsWin ? "/C" : "-c";
             var args = new[] { c, cmd };
             Run(shell, args);
+        }
+
+        private static void GoogleTts(string q, string tl) {
+            q = HttpUtility.UrlEncode(q?.Trim() ?? "");
+            tl = HttpUtility.UrlEncode(tl?.Trim() ?? "");
+            var url = $"http://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q={q}&tl={tl}";
+            Run("mpg123", new []{url});
         }
     }
 }

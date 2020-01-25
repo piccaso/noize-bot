@@ -13,6 +13,9 @@ function register(regex, mp3) {
 }
 
 function processMatches() {
+    if (verbose) {
+        log(`message=${message}`);
+    }
     var queue = [];
     var parts = message.split(/[\s]+/);
     if (parts.length < 1 | registeredEntries.length < 1) return;
