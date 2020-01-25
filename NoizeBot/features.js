@@ -32,19 +32,14 @@ match(/egal|:relaxed:/i, 'tracks/egal.mp3');
 match(/:middle_finger:/i, 'tracks/fea.mp3');
 match(/bathroom|toilet/i, 'tracks/bathroom.mp3');
 match(/balls|nukem/i, 'tracks/ballsOfSteel.mp3');
-match(/fake news/i, 'tracks/fakeNews.mp3');
-match(/get back to work|slacker/i, 'tracks/slacker.mp3');
+match(/fake/i, 'tracks/fakeNews.mp3');
+match(/slacker/i, 'tracks/slacker.mp3');
 match(/Schlafn|Schlofn|Hackln/i, 'tracks/hackln.mp3');
+match(/so say we all/i, 'tracks/soSayWeAll.mp3');
+match(/facebook/i, 'tracks/facebook.mp3');
+match(/windows/i, 'tracks/windows.mp3');
 
 
 // Commands (wip)
 match(/^nb_say (.*)$/, m => tts(m[1]));
-match(/^nb_play_url (http[^ ]+)$/, m => run('/bin/bash', ['-c', `curl "${m[1].replace('"','\\"')}" | mpg123 -`]));
-match(/^nb_fart_attack ([1-9]{1})/, m => {
-    var playlist = [];
-    for (var i = 0; i < m[1]; i++) {
-        playlist.push('./tracks/smileys/hankey.mp3');
-    }
-    playlist.push('./tracks/smileys/smile.mp3');
-    run("mpg123", playlist);
-});
+match(/^nb_play_url (http[^ ]+)$/, m => playUrl(m[1]));

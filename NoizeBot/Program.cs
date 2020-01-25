@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Channels;
@@ -113,6 +114,7 @@ namespace NoizeBot {
             engine.SetValue("run", new Action<string, string[]>(Run));
             engine.SetValue("exec", new Action<string, string>(Exec));
             engine.SetValue("tts", new Action<string>(Tts));
+            engine.SetValue("playUrl", new Action<string>(PlayUrl));
             engine.SetValue("die", Shutdown);
             engine.SetValue("message", message);
             engine.SetValue("cmd", cmd);
@@ -133,9 +135,20 @@ namespace NoizeBot {
             }
         }
 
+        private static string Json(object o, bool pretty = false) {
+            return JsonSerializer.Serialize(o, new JsonSerializerOptions {
+                WriteIndented = pretty
+            });
+        }
+
         private const int ProcessTimeoutMilliseconds = 1000 * 60 * 3;
 
         private static void Run(string command, string[] args = null) {
+
+            if (_configuration.Verbose) {
+                Console.WriteLine(Json(new {command, args}));
+            }
+
             using var p = new Process {
                 StartInfo = {
                     UseShellExecute = false,
@@ -175,9 +188,9 @@ namespace NoizeBot {
             return sr.ReadToEnd();
         }
 
-
+        private static readonly bool IsWin = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
         private static void Tts(string msg) {
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
+            if (IsWin) {
                 TtsWin(msg);
             }
             else {
@@ -198,6 +211,19 @@ namespace NoizeBot {
                 $"Add-Type –AssemblyName System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).Speak('{msg}');"
             };
             Run("PowerShell", args);
+        }
+
+        private static void PlayUrl(string url) {
+            if(string.IsNullOrWhiteSpace(url)) return;
+            ShellExec($"curl \"{url}\" | mpg123 -");
+        }
+
+        private static void ShellExec(string cmd) {
+            if(string.IsNullOrWhiteSpace(cmd)) return;
+            var shell = IsWin ? "cmd" : "bash";
+            var c = IsWin ? "/C" : "-c";
+            var args = new[] { c, cmd };
+            Run(shell, args);
         }
     }
 }
