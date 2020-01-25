@@ -57,7 +57,8 @@ namespace NoizeBot {
             using var socket = new MattermostWebsocket(url, cancellationToken: _cancellationToken);
             socket.OnPosted += e => {
                 Console.WriteLine($"Channel: {e.ChannelDisplayName} Message: {e.Post.Message}");
-                PostedChannel.Writer.WriteAsync(e, _cancellationToken);
+                if(e.Post.Message == "nb_kill") Environment.Exit(99);
+                PostedChannel.Writer.WriteAsync(e, _cancellationToken).GetAwaiter().GetResult();
             };
             socket.OnHello += sv => { Console.WriteLine($"ServerVersion: {sv}"); };
             socket.OnWebSocketResponse += r => {
@@ -102,15 +103,6 @@ namespace NoizeBot {
         }
 
         private static void Process(string message, string channelDisplayName, string channelId) {
-            var cmd = string.Empty;
-            var args = string.Empty;
-            var split = message.Split(" ", 2);
-            if (split != null && split.Length == 2)
-            {
-                cmd = split[0];
-                args = split[1];
-            }
-
             var engine = new Engine();
             engine.SetValue("log", new Action<object>(Console.WriteLine));
             engine.SetValue("run", new Action<string, string[]>(Run));
@@ -119,8 +111,6 @@ namespace NoizeBot {
             engine.SetValue("googleTts", new Action<string, string>(GoogleTts));
             engine.SetValue("die", Shutdown);
             engine.SetValue("message", message);
-            engine.SetValue("cmd", cmd);
-            engine.SetValue("args", args);
             engine.SetValue("channel", channelDisplayName);
             engine.SetValue("channelId", channelId);
             engine.SetValue("verbose", _configuration.Verbose);
