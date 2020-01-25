@@ -216,6 +216,7 @@ namespace NoizeBot {
 
         private static void PlayUrl(string url) {
             if(string.IsNullOrWhiteSpace(url)) return;
+            url = url.Replace("\"", "\\\"");
             ShellExec($"curl \"{url}\" | mpg123 -");
         }
 

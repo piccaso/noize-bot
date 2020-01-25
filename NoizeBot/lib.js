@@ -20,10 +20,7 @@ function processMatches() {
         var part = parts[p];
         for (var r = 0; r < registeredEntries.length; r++) {
             var reg = registeredEntries[r];
-            if (part.match(reg.regex)) {
-                queue.push(reg.mp3);
-                log("q:" + reg.mp3);
-            }
+            if (part.match(reg.regex)) queue.push(reg.mp3);
         }
     }
     if (queue.length > 0) run("mpg123", queue);
