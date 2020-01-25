@@ -6,3 +6,25 @@
     };
     return m;
 }
+
+var registeredEntries = [];
+function register(regex, mp3) {
+    registeredEntries.push({ regex, mp3 });
+}
+
+function processMatches() {
+    var queue = [];
+    var parts = message.split(/[\s]+/);
+    if (parts.length < 1 | registeredEntries.length < 1) return;
+    for (var p = 0; p < parts.length; p++) {
+        var part = parts[p];
+        for (var r = 0; r < registeredEntries.length; r++) {
+            var reg = registeredEntries[r];
+            if (part.match(reg.regex)) {
+                queue.push(reg.mp3);
+                log("q:" + reg.mp3);
+            }
+        }
+    }
+    if (queue.length > 0) run("mpg123", queue);
+}

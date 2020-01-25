@@ -123,6 +123,7 @@ namespace NoizeBot {
             engine.SetValue("channelId", channelId);
             engine.Execute(LibJs);
             engine.Execute(FeaturesJs);
+            engine.Invoke("processMatches");
         }
 
         private static void Repl() {
