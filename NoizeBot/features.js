@@ -49,5 +49,5 @@ register(/money/i, 'tracks/money.mp3');
 match(/^nb_say ([\s\S]*)$/, m => tts(m[1]));
 match(/^google_say ([\s\S]*)$/, m => googleTts(m[1], "en"));
 match(/^google_(sag|sprich) ([\s\S]*)$/, m => googleTts(m[2], "de"));
-match(/^google_tts_([a-z]{1,4}) ([\s\S]*)/, m => googleTts(m[2], m[1]));
+match(/^google_tts_([a-z\-]{2,6}) ([\s\S]*)/, m => googleTts(m[2], m[1]));
 match(/^nb_play_url (http[^ ]+)$/, m => playUrl(m[1]));

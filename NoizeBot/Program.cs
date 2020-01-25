@@ -217,6 +217,7 @@ namespace NoizeBot {
         }
 
         private static void GoogleTts(string q, string tl) {
+            // tl see: https://github.com/ncpierson/google-tts-languages/blob/master/src/index.js
             q = HttpUtility.UrlEncode(q?.Trim() ?? "");
             tl = HttpUtility.UrlEncode(tl?.Trim() ?? "");
             var url = $"http://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q={q}&tl={tl}";
