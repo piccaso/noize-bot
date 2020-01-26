@@ -77,7 +77,7 @@ namespace NoizeBot {
                 if(BotUserId == e.Post.UserId) return;
                 if (e.Post.Message == "nb_kill") {
                     try {
-                        CreatePost(":dizzy_face:", e.Post.ChannelId, e.Post.Id);
+                        CreatePost(":dizzy_face:", e.Post.ChannelId, e.Post.GetReplyPostId());
                     }
                     finally {
                         KillMe();
@@ -116,7 +116,7 @@ namespace NoizeBot {
                     }
 
                     var message = e.Post.Message.Trim();
-                    Process(message, e.ChannelDisplayName, e.Post.ChannelId, e.Post.Id);
+                    Process(message, e.ChannelDisplayName, e.Post.ChannelId, e.Post.GetReplyPostId());
 
                 }
                 catch (Exception ex) {
@@ -128,10 +128,10 @@ namespace NoizeBot {
                 }
         }
 
-        private static void Process(string message, string channelDisplayName, string channelId, string postId) {
+        private static void Process(string message, string channelDisplayName, string channelId, string rootPostId) {
             var reply = new Action<string>(msg => {
                 if (_configuration.Repl) Console.WriteLine(msg);
-                else CreatePost(msg, channelId, postId);
+                else CreatePost(msg, channelId, rootPostId);
             });
 
             var getStatusJson = new Func<string>(delegate {
@@ -153,7 +153,7 @@ namespace NoizeBot {
                     repl = _configuration.Repl,
                     channel = channelDisplayName,
                     channelId,
-                    postId,
+                    postId = rootPostId,
                 }.ToHumanReadableJson();
             });
             var engine = new Engine();
