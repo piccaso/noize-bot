@@ -12,7 +12,9 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Web;
 using Jint;
+using MattermostApi;
 using WebsocketClient;
+using Channel = System.Threading.Channels.Channel;
 
 namespace NoizeBot {
     internal class Program {
@@ -22,6 +24,8 @@ namespace NoizeBot {
         public static Action Shutdown;
         private static readonly string FeaturesJs = GetEmbeddedResource("NoizeBot.features.js");
         private static readonly string LibJs = GetEmbeddedResource("NoizeBot.lib.js");
+        private static readonly DateTimeOffset StartTime = DateTimeOffset.UtcNow;
+        public static string BotUserId { get; set; }
 
         private static void Main(string[] args) {
             try {
@@ -52,14 +56,19 @@ namespace NoizeBot {
                 Repl();
                 return;
             }
-            var url = new Uri(_configuration.WebsocketUrl);
-            using var socket = new MattermostWebsocket(url, cancellationToken: _cancellationToken);
+
+            var url = _configuration.ServerUri.TrimEnd('/') + "/api/v4/websocket";
+            url = Regex.Replace(url, "^https:", "wss:");
+            url = Regex.Replace(url, "^http:", "ws:");
+            using var socket = new MattermostWebsocket(new Uri(url), cancellationToken: _cancellationToken);
             socket.OnPosted += e => {
-                Console.WriteLine($"Channel: {e.ChannelDisplayName} Message: {e.Post.Message}");
+                Console.WriteLine($"{e.ChannelDisplayName}> {e.Post.Message}");
+                if(BotUserId == e.Post.UserId) return;
                 if(e.Post.Message == "nb_kill") Environment.Exit(99);
                 PostedChannel.Writer.WriteAsync(e, _cancellationToken).GetAwaiter().GetResult();
             };
             socket.OnHello += sv => { Console.WriteLine($"ServerVersion: {sv}"); };
+            socket.OnBotUserId += id => { BotUserId = id; };
             socket.OnWebSocketResponse += r => {
                 if (!string.IsNullOrEmpty(r.Status)) Console.WriteLine($"Status: {r.Status}");
                 if (!string.IsNullOrEmpty(r.Event)) Console.WriteLine($"Event: {r.Event}");
@@ -89,7 +98,7 @@ namespace NoizeBot {
                     }
 
                     var message = e.Post.Message.Trim();
-                    Process(message, e.ChannelDisplayName, e.Post.ChannelId);
+                    Process(message, e.ChannelDisplayName, e.Post.ChannelId, e.Post.Id);
 
                 }
                 catch (Exception ex) {
@@ -101,17 +110,21 @@ namespace NoizeBot {
                 }
         }
 
-        private static void Process(string message, string channelDisplayName, string channelId) {
+        private static void Process(string message, string channelDisplayName, string channelId, string postId) {
             var engine = new Engine();
             engine.SetValue("log", new Action<object>(Console.WriteLine));
-            engine.SetValue("run", new Action<string, string[]>(Run));
+            engine.SetValue("run", new Func<string, string[], int>(Run));
             engine.SetValue("tts", new Action<string>(Tts));
             engine.SetValue("playUrl", new Action<string>(PlayUrl));
             engine.SetValue("googleTts", new Action<string, string>(GoogleTts));
+            engine.SetValue("reply", new Action<string>(msg => {
+                if (_configuration.Repl) Console.WriteLine(msg);
+                else CreatePost(msg, channelId, postId);
+            }));
             engine.SetValue("die", Shutdown);
+            engine.SetValue("status", $"Uptime: {DateTimeOffset.UtcNow-StartTime} (Since: {StartTime})");
             engine.SetValue("message", message);
             engine.SetValue("channel", channelDisplayName);
-            engine.SetValue("channelId", channelId);
             engine.SetValue("verbose", _configuration.Verbose);
             engine.Execute(LibJs);
             engine.Execute(FeaturesJs);
@@ -124,7 +137,7 @@ namespace NoizeBot {
                 Console.Write(">");
                 var line = Console.ReadLine();
                 if(line == null) break;
-                Process(line, "channel", "asdf1234");
+                Process(line, "channel", "", "");
             }
         }
 
@@ -136,7 +149,7 @@ namespace NoizeBot {
 
         private const int ProcessTimeoutMilliseconds = 1000 * 60 * 3;
 
-        private static void Run(string command, string[] args = null) {
+        private static int Run(string command, string[] args = null) {
 
             if (_configuration.Verbose) {
                 Console.WriteLine(Json(new {command, args}));
@@ -156,6 +169,7 @@ namespace NoizeBot {
             if (!p.WaitForExit(ProcessTimeoutMilliseconds)) {
                 p.Kill(true);
             };
+            return p.ExitCode;
         }
 
         private static string GetEmbeddedResource(string name) {
@@ -211,6 +225,26 @@ namespace NoizeBot {
             tl = HttpUtility.UrlEncode(tl?.Trim() ?? "");
             var url = $"http://translate.google.com/translate_tts?ie=UTF-8&client=tw-ob&q={q}&tl={tl}";
             Run("mpg123", new []{url});
+        }
+
+        private static void CreatePost(string message, string channelId, string rootId = null) {
+            try {
+                if (string.IsNullOrWhiteSpace(message) || string.IsNullOrWhiteSpace(channelId)) return;
+                var settings = new Settings {
+                    AccessToken = _configuration.Token,
+                    ServerUri = new Uri(_configuration.ServerUri),
+                    TokenExpires = DateTime.Now.AddYears(1), // or maybe never
+
+                    // required by the library but not used
+                    ApplicationName = "NoizeBot",
+                    RedirectUri = new Uri(_configuration.ServerUri)
+                };
+                using var api = new Api(settings);
+                Post.Create(api, channelId, message, rootId).GetAwaiter().GetResult();
+            }
+            catch (Exception e) {
+                Console.WriteLine(e.ToString());
+            }
         }
     }
 }

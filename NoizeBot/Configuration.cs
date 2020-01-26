@@ -16,7 +16,7 @@ namespace NoizeBot {
         }
 
         private string this[string key] => _config[key];
-        public string WebsocketUrl => this[nameof(WebsocketUrl)];
+        public string ServerUri => this[nameof(ServerUri)];
         public string Token => this[nameof(Token)];
         public string IgnoreChannelsRegex => this[nameof(IgnoreChannelsRegex)];
         public readonly bool Verbose;

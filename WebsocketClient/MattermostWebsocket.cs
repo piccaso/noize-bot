@@ -95,6 +95,7 @@ namespace WebsocketClient {
         public event Action<WebSocketResponse> OnWebSocketResponse;
         public event Action<PostedEvent> OnPosted;
         public event Action<string> OnHello;
+        public event Action<string> OnBotUserId;
 
         public async Task Listen() {
             while (!_cancellationToken.IsCancellationRequested) {
@@ -113,6 +114,9 @@ namespace WebsocketClient {
                     }
                     if (response.TryGetData("hello", "server_version", out var serverVersion)) {
                         OnHello?.Invoke(serverVersion);
+                        if (response.Broadcast != null && response.Broadcast.ContainsKey("user_id")) {
+                            OnBotUserId?.Invoke(response.Broadcast["user_id"]);
+                        }
                     }
                 }
             }

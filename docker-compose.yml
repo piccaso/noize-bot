@@ -6,7 +6,7 @@ services:
     devices:
       - "/dev/snd:/dev/snd"
 #    environment:
-#      WebsocketUrl: "wss://mattermost.mydomain.tld/api/v4/websocket"
+#      ServerUri: "https://mattermost.mydomain.tld/",
 #      Token: "<bot auth token>"
 #      IgnoreChannelsRegex: "office|town-square"
     restart: on-failure

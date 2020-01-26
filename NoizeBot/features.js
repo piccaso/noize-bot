@@ -8,7 +8,7 @@ register(/:grinning:/, './tracks/smileys/grinning.mp3');
 register(/:hankey:|:poop:|:shit:/, './tracks/smileys/hankey.mp3');
 register(/:open_mouth:/, './tracks/smileys/open_mouth.mp3');
 register(/:rage:/, './tracks/smileys/rage.mp3');
-register(/:smile:|:simple_smile:|':slightly_smiling_face:/, './tracks/smileys/smile.mp3');
+register(/:smile:|:simple_smile:|:slightly_smiling_face:/, './tracks/smileys/smile.mp3');
 register(/:stuck_out_tongue:/, './tracks/smileys/stuck_out_tongue.mp3');
 register(/:stuck_out_tongue_winking_eye:/, './tracks/smileys/stuck_out_tongue_winking_eye.mp3');
 register(/:sunglasses:/, './tracks/smileys/sunglasses.mp3');
@@ -45,10 +45,29 @@ register(/money/i, 'tracks/money.mp3');
 register(/try/i, 'tracks/try.mp3');
 register(/yoda/i, 'tracks/yoda.mp3');
 
-
 // Commands - regex must match a full message
 match(/^nb_say ([\s\S]*)$/, m => tts(m[1]));
 match(/^google_say ([\s\S]*)$/, m => googleTts(m[1], "en"));
 match(/^google_(sag|sprich) ([\s\S]*)$/, m => googleTts(m[2], "de"));
 match(/^google_tts_([a-z\-]{2,6}) ([\s\S]*)/, m => googleTts(m[2], m[1]));
 match(/^nb_play_url (http[^ ]+)$/, m => playUrl(m[1]));
+match(/^nb_help/, m => reply(`
+|Command                      |Description                                                          |
+|-----------------------------|---------------------------------------------------------------------|
+|\`nb_say <text>\`            | say something                                                       |
+|\`nb_play_url <url>\`        | download and play <url>                                             |
+|\`nb_status\`                | show status                                                         |
+|\`nb_kill\`                  | it won't hurt... much                                               |
+|\`google_say <text>\`        | say something using google translate                                |
+|\`google_sag <text>\`        | auf deutsch                                                         |
+|\`google_tts_<lang> <text>\` | any (supported) language, like: \`google_tts_en-uk it's tea time!\` |
+`));
+match(/^nb_list/, m => {
+    var list = "|Regex|Sound|\n|---|---|\n";
+    for (var r = 0; r < registeredEntries.length; r++) {
+        var reg = registeredEntries[r];
+        list += `|\`${reg.regex.toString().replace(/\|/g,'\\|')}\`|${reg.mp3}|\n`;
+    }
+    reply(list);
+});
+match(/^nb_status/, () => reply("i'm fine :thumbsup:\n" + status));

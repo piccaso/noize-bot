@@ -19,6 +19,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="3.1.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration.CommandLine" Version="3.1.1" />
     <PackageReference Include="Jint" Version="3.0.0-beta-1632" />
+    <PackageReference Include="MattermostApi" Version="1.0.20" />
   </ItemGroup>
 
   <ItemGroup>
