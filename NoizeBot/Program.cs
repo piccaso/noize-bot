@@ -13,8 +13,11 @@ using System.Threading.Tasks;
 using System.Web;
 using Jint;
 using MattermostApi;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using WebsocketClient;
 using Channel = System.Threading.Channels.Channel;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace NoizeBot {
     internal class Program {
@@ -51,6 +54,14 @@ namespace NoizeBot {
             }
         }
 
+        private static void KillMe() {
+            try { Shutdown?.Invoke(); } catch {/*nah...*/}
+            try { KillRunningProcess?.Invoke(); } catch {/*nah...*/}
+            try { System.Diagnostics.Process.GetCurrentProcess().Kill(); } catch {/*nah...*/}
+            try { Environment.Exit(99); } catch {/*nah...*/}
+            Environment.FailFast(null);
+        }
+
         private static async Task MainAsync() {
             if (_configuration.Repl) {
                 Repl();
@@ -64,7 +75,14 @@ namespace NoizeBot {
             socket.OnPosted += e => {
                 Console.WriteLine($"{e.ChannelDisplayName}> {e.Post.Message}");
                 if(BotUserId == e.Post.UserId) return;
-                if(e.Post.Message == "nb_kill") Environment.Exit(99);
+                if (e.Post.Message == "nb_kill") {
+                    try {
+                        CreatePost(":dizzy_face:", e.Post.ChannelId, e.Post.Id);
+                    }
+                    finally {
+                        KillMe();
+                    }
+                };
                 PostedChannel.Writer.WriteAsync(e, _cancellationToken).GetAwaiter().GetResult();
             };
             socket.OnHello += sv => { Console.WriteLine($"ServerVersion: {sv}"); };
@@ -111,18 +129,42 @@ namespace NoizeBot {
         }
 
         private static void Process(string message, string channelDisplayName, string channelId, string postId) {
+            var reply = new Action<string>(msg => {
+                if (_configuration.Repl) Console.WriteLine(msg);
+                else CreatePost(msg, channelId, postId);
+            });
+
+            var getStatusJson = new Func<string>(delegate {
+                var cp = System.Diagnostics.Process.GetCurrentProcess();
+                var cpuTime = cp.TotalProcessorTime;
+                var workingSet = FormatBytes(cp.WorkingSet64);
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+                var mem = GC.GetTotalAllocatedBytes(true);
+                return new {
+                    currentTime = DateTimeOffset.UtcNow,
+                    startTime = StartTime,
+                    upTime = DateTimeOffset.UtcNow - StartTime,
+                    cpuTime,
+                    memAllocated = FormatBytes(mem),
+                    workingSet,
+                    botUserId = BotUserId,
+                    verbose = _configuration.Verbose,
+                    repl = _configuration.Repl,
+                    channel = channelDisplayName,
+                    channelId,
+                    postId,
+                }.ToHumanReadableJson();
+            });
             var engine = new Engine();
             engine.SetValue("log", new Action<object>(Console.WriteLine));
             engine.SetValue("run", new Func<string, string[], int>(Run));
             engine.SetValue("tts", new Action<string>(Tts));
             engine.SetValue("playUrl", new Action<string>(PlayUrl));
             engine.SetValue("googleTts", new Action<string, string>(GoogleTts));
-            engine.SetValue("reply", new Action<string>(msg => {
-                if (_configuration.Repl) Console.WriteLine(msg);
-                else CreatePost(msg, channelId, postId);
-            }));
+            engine.SetValue("reply", reply);
             engine.SetValue("die", Shutdown);
-            engine.SetValue("status", $"Uptime: {DateTimeOffset.UtcNow-StartTime} (Since: {StartTime})");
+            engine.SetValue(name: "getStatusJson", getStatusJson);
             engine.SetValue("message", message);
             engine.SetValue("channel", channelDisplayName);
             engine.SetValue("verbose", _configuration.Verbose);
@@ -147,28 +189,45 @@ namespace NoizeBot {
             });
         }
 
-        private const int ProcessTimeoutMilliseconds = 1000 * 60 * 3;
+        private static string FormatBytes(long bytes) {
+            var len = Convert.ToDecimal(bytes);
+            string[] sizes = {"B", "KB", "MB", "GB", "TB"};
+            var order = 0;
+            while (len >= 1024 && order < sizes.Length - 1) {
+                order++;
+                len /= 1024;
+            }
+
+            return $"{len:0.###} {sizes[order]}";
+        }
+
+        private const int ProcessTimeoutMilliseconds = 1000 * 60 * 5;
+
+        public static Action KillRunningProcess = null;
 
         private static int Run(string command, string[] args = null) {
-
-            if (_configuration.Verbose) {
-                Console.WriteLine(Json(new {command, args}));
-            }
+            if (_configuration.Verbose) Console.WriteLine(Json(new {command, args}));
 
             using var p = new Process {
                 StartInfo = {
                     UseShellExecute = false,
                     FileName = command,
-                    CreateNoWindow = false,
+                    CreateNoWindow = false
                 }
             };
-            foreach (var arg in args ?? Array.Empty<string>()) {
-                p.StartInfo.ArgumentList.Add(arg);
+            foreach (var arg in args ?? Array.Empty<string>()) p.StartInfo.ArgumentList.Add(arg);
+
+            try {
+                p.Start();
+                KillRunningProcess = () => p.Kill(true);
+                if (!p.WaitForExit(ProcessTimeoutMilliseconds)) KillRunningProcess();
+                ;
             }
-            p.Start();
-            if (!p.WaitForExit(ProcessTimeoutMilliseconds)) {
-                p.Kill(true);
-            };
+            finally {
+                KillRunningProcess = null;
+            }
+
+
             return p.ExitCode;
         }
 

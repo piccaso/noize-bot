@@ -51,14 +51,15 @@ register(/:alien:/i, 'tracks/alien.mp3');
 register(/:broken_heart:/i, 'tracks/glass.mp3');
 register(/running/i, 'tracks/running.mp3');
 register(/^run(|!)$/i, 'tracks/run.mp3');
+register(/^help(|!)|:hospital:$/i, 'tracks/help.mp3');
 
 // Commands - regex must match a full message
-match(/^nb_say ([\s\S]*)$/, m => tts(m[1]));
-match(/^google_say ([\s\S]*)$/, m => googleTts(m[1], "en"));
-match(/^google_(sag|sprich) ([\s\S]*)$/, m => googleTts(m[2], "de"));
-match(/^google_tts_([a-z\-]{2,6}) ([\s\S]*)/, m => googleTts(m[2], m[1]));
-match(/^nb_play_url (http[^ ]+)$/, m => playUrl(m[1]));
-match(/^nb_help/, m => reply(`
+match(/^nb_say ([\s\S]*)$/i, m => tts(m[1]));
+match(/^google_say ([\s\S]*)$/i, m => googleTts(m[1], "en"));
+match(/^google_(sag|sprich) ([\s\S]*)$/i, m => googleTts(m[2], "de"));
+match(/^google_tts_([a-z\-]{2,6}) ([\s\S]*)/i, m => googleTts(m[2], m[1]));
+match(/^nb_play_url (http[^ ]+)$/i, m => playUrl(m[1]));
+match(/^nb_help/i, m => reply(`
 |Command                      |Description                                                          |
 |-----------------------------|---------------------------------------------------------------------|
 |\`nb_say <text>\`            | say something                                                       |
@@ -69,7 +70,7 @@ match(/^nb_help/, m => reply(`
 |\`google_sag <text>\`        | auf deutsch                                                         |
 |\`google_tts_<lang> <text>\` | any (supported) language, like: \`google_tts_en-uk it's tea time!\` |
 `));
-match(/^nb_list/, m => {
+match(/^nb_list/i, m => {
     var list = "|Regex|Sound|\n|---|---|\n";
     for (var r = 0; r < registeredEntries.length; r++) {
         var reg = registeredEntries[r];
@@ -77,4 +78,6 @@ match(/^nb_list/, m => {
     }
     reply(list);
 });
-match(/^nb_status/, () => reply("i'm fine :thumbsup:\n" + status));
+match(/^nb_status/i, () => {
+    reply("```json\n" + getStatusJson() + "\n```");
+});
