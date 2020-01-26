@@ -36,7 +36,7 @@ register(/facebook|fb\.com/i, 'tracks/facebook.mp3');
 register(/windows/i, 'tracks/windows.mp3');
 register(/ibiza|fpö|fpoe|strache/i, 'tracks/ibiza.mp3');
 register(/cloud|azure|aws|geklaut|diebstahl|hinterziehung/i, 'tracks/cloud.mp3');
-register(/kaelte|kälte|winter/i, 'tracks/kaelte.mp3');
+register(/kaelte|kälte|winter|:speaker:|:loud_sound:|:mega:|:loudspeaker:/i, 'tracks/kaelte.mp3');
 register(/hoschi/i, 'tracks/hoschi.mp3');
 register(/engage/i, 'tracks/engage.mp3');
 register(/limit/i, 'tracks/limit.mp3');
@@ -44,6 +44,13 @@ register(/space/i, 'tracks/space.mp3');
 register(/money/i, 'tracks/money.mp3');
 register(/try/i, 'tracks/try.mp3');
 register(/yoda/i, 'tracks/yoda.mp3');
+register(/:penguin:/i, 'tracks/linus.mp3');
+register(/:doughnut:|homer|doh/i, 'tracks/doh.mp3');
+register(/shorts/i, 'tracks/shorts.mp3');
+register(/:alien:/i, 'tracks/alien.mp3');
+register(/:broken_heart:/i, 'tracks/glass.mp3');
+register(/running/i, 'tracks/running.mp3');
+register(/^run(|!)$/i, 'tracks/run.mp3');
 
 // Commands - regex must match a full message
 match(/^nb_say ([\s\S]*)$/, m => tts(m[1]));
