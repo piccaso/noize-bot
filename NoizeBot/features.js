@@ -64,6 +64,7 @@ match(/^nb_help/i, m => reply(`
 |-----------------------------|---------------------------------------------------------------------|
 |\`nb_say <text>\`            | say something                                                       |
 |\`nb_play_url <url>\`        | download and play <url>                                             |
+|\`nb_yt <url>\`              | download and youtube video from <url>                               |
 |\`nb_status\`                | show status                                                         |
 |\`nb_kill\`                  | it won't hurt... much                                               |
 |\`google_say <text>\`        | say something using google translate                                |
@@ -81,3 +82,4 @@ match(/^nb_list/i, m => {
 match(/^nb_status/i, () => {
     reply("```json\n" + getStatusJson() + "\n```");
 });
+match(/^nb_yt (http[^ ]+)$/i, m => run('play-youtube', [m[1]]));
