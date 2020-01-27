@@ -45,7 +45,7 @@ register(/money/i, 'tracks/money.mp3');
 register(/try/i, 'tracks/try.mp3');
 register(/yoda/i, 'tracks/yoda.mp3');
 register(/:penguin:/i, 'tracks/linus.mp3');
-register(/:doughnut:|homer|doh/i, 'tracks/doh.mp3');
+register(/:doughnut:|homer|^doh$/i, 'tracks/doh.mp3');
 register(/shorts/i, 'tracks/shorts.mp3');
 register(/:alien:/i, 'tracks/alien.mp3');
 register(/:broken_heart:/i, 'tracks/glass.mp3');
