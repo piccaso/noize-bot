@@ -83,3 +83,4 @@ match(/^nb_status/i, () => {
     reply("```json\n" + getStatusJson() + "\n```");
 });
 match(/^nb_yt (http[^ ]+)$/i, m => run('play-youtube', [m[1]]));
+match(/^nb_sleep ([^ ]+)$/i, m => run('sleep', [m[1]]));
