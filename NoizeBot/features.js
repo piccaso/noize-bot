@@ -59,6 +59,8 @@ match(/^google_say ([\s\S]*)$/i, m => googleTts(m[1], "en"));
 match(/^google_(sag|sprich) ([\s\S]*)$/i, m => googleTts(m[2], "de"));
 match(/^google_tts_([a-z\-]{2,6}) ([\s\S]*)/i, m => googleTts(m[2], m[1]));
 match(/^nb_play_url (http[^ ]+)$/i, m => playUrl(m[1]));
+match(/^nb_status/i, () => reply("```json\n" + getStatusJson() + "\n```"));
+match(/^nb_yt (http[^ ]+)$/i, m => run('play-youtube', [m[1]]));
 match(/^nb_help/i, m => reply(`
 |Command                      |Description                                                          |
 |-----------------------------|---------------------------------------------------------------------|
@@ -66,7 +68,8 @@ match(/^nb_help/i, m => reply(`
 |\`nb_play_url <url>\`        | download and play <url>                                             |
 |\`nb_yt <url>\`              | download and play youtube video from <url>                          |
 |\`nb_status\`                | show status                                                         |
-|\`nb_kill\`                  | it won't hurt... much                                               |
+|\`nb_krp\`                   | try to kill the running background process                          |
+|\`nb_kill\`                  | try to commit suicide                                               |
 |\`google_say <text>\`        | say something using google translate                                |
 |\`google_sag <text>\`        | auf deutsch                                                         |
 |\`google_tts_<lang> <text>\` | any (supported) language, like: \`google_tts_en-uk it's tea time!\` |
@@ -79,8 +82,7 @@ match(/^nb_list/i, m => {
     }
     reply(list);
 });
-match(/^nb_status/i, () => {
-    reply("```json\n" + getStatusJson() + "\n```");
+match(/^nb_sleep ([^ ]+)$/i, m => {
+    var r = run('sleep', [m[1]]);
+    reply(`done, r=${r}`);
 });
-match(/^nb_yt (http[^ ]+)$/i, m => run('play-youtube', [m[1]]));
-match(/^nb_sleep ([^ ]+)$/i, m => run('sleep', [m[1]]));

@@ -36,8 +36,19 @@ namespace NoizeBot {
             }
         }
         public static void KillMe() {
-            try { Shutdown?.Invoke();} catch { /*nah...*/ }
-            try { Environment.Exit(99); } catch { /*nah...*/}
+            try {
+                Console.WriteLine($"Trying Shutdown...");
+                Shutdown?.Invoke();
+
+            } catch (Exception e) {
+                Console.WriteLine($"Shutdown failed: {e.Message}");
+            }
+            try {
+                Console.WriteLine($"Trying Exit...");
+                Environment.Exit(99); 
+
+            } catch { /*nah...*/}
+            Console.WriteLine($"Trying FailFast...");
             Environment.FailFast(null);
         }
         private static async Task MainAsync() {
@@ -53,13 +64,21 @@ namespace NoizeBot {
             socket.OnPosted += e => {
                 Console.WriteLine($"{e.ChannelDisplayName}> {e.Post.Message}");
                 if (BotUserId == e.Post.UserId) return;
-                if (e.Post.Message == "nb_kill")
+                void reply(string message) => Processing.CreatePost(message, e.Post.ChannelId, e.Post.GetReplyPostId());
+                if (e.Post.Message.Equals("nb_kill", StringComparison.InvariantCultureIgnoreCase)) {
                     try {
-                        Processing.CreatePost(":dizzy_face:", e.Post.ChannelId, e.Post.GetReplyPostId());
+                        reply(":dizzy_face:");
                     } finally {
                         KillMe();
                     }
-                ;
+                }
+                if (e.Post.Message.Equals("nb_krp", StringComparison.InvariantCultureIgnoreCase)) {
+                    try {
+                        Processing.KillRunningProcess?.Invoke();
+                    } catch (Exception ex) {
+                        reply($"Failed... {ex.Message}");
+                    }
+                }
                 PostedChannel.Writer.WriteAsync(e, _cancellationToken).GetAwaiter().GetResult();
             };
             socket.OnHello += sv => { Console.WriteLine($"ServerVersion: {sv}"); };
