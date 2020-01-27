@@ -13,8 +13,6 @@ using System.Threading.Tasks;
 using System.Web;
 using Jint;
 using MattermostApi;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using WebsocketClient;
 using Channel = System.Threading.Channels.Channel;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -56,8 +54,6 @@ namespace NoizeBot {
 
         private static void KillMe() {
             try { Shutdown?.Invoke(); } catch {/*nah...*/}
-            try { KillRunningProcess?.Invoke(); } catch {/*nah...*/}
-            try { System.Diagnostics.Process.GetCurrentProcess().Kill(); } catch {/*nah...*/}
             try { Environment.Exit(99); } catch {/*nah...*/}
             Environment.FailFast(null);
         }
