@@ -36,14 +36,8 @@ namespace NoizeBot {
             }
         }
         public static void KillMe() {
-            try {
-                Shutdown?.Invoke();
-            } catch { /*nah...*/
-            }
-            try {
-                Environment.Exit(99);
-            } catch { /*nah...*/
-            }
+            try { Shutdown?.Invoke();} catch { /*nah...*/ }
+            try { Environment.Exit(99); } catch { /*nah...*/}
             Environment.FailFast(null);
         }
         private static async Task MainAsync() {
