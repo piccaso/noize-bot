@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using System.Net.Security;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Channels;
@@ -92,10 +93,17 @@ namespace NoizeBot {
                     }
             };
             if (_configuration.Verbose) socket.OnJsonMessage += Console.WriteLine;
-            await socket.Authenticate(_configuration.Token);
+            async Task Auth() {
+                while (!_cancellationToken.IsCancellationRequested) {
+                    await socket.Authenticate(_configuration.Token);
+                    await Task.Delay(TimeSpan.FromMinutes(5));
+                }
+            }
+
+            var authTaks = Auth();
             var processingTask = Process();
             var listenTask = socket.Listen();
-            await Task.WhenAny(processingTask, listenTask);
+            await Task.WhenAny(processingTask, listenTask, authTaks);
         }
         private static async Task Process() {
             Regex ignoreChannelsRegex = null;
