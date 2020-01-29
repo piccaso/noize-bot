@@ -97,8 +97,9 @@ namespace NoizeBot {
             
             async Task Auth() {
                 while (!_cancellationToken.IsCancellationRequested) {
-                    await socket.Authenticate(_configuration.Token);
                     await Task.Delay(TimeSpan.FromMinutes(5));
+                    Console.WriteLine("Reauth");
+                    await socket.Authenticate(_configuration.Token);
                 }
             }
 
