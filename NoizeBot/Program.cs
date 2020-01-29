@@ -93,6 +93,8 @@ namespace NoizeBot {
                     }
             };
             if (_configuration.Verbose) socket.OnJsonMessage += Console.WriteLine;
+            await socket.Authenticate(_configuration.Token);
+            
             async Task Auth() {
                 while (!_cancellationToken.IsCancellationRequested) {
                     await socket.Authenticate(_configuration.Token);
