@@ -84,6 +84,7 @@ namespace NoizeBot {
             };
             socket.OnHello += sv => { Console.WriteLine($"ServerVersion: {sv}"); };
             socket.OnBotUserId += id => { BotUserId = id; };
+            long lastResponse = 0;
             socket.OnWebSocketResponse += r => {
                 if (!string.IsNullOrEmpty(r.Status)) Console.WriteLine($"Status: {r.Status}");
                 if (!string.IsNullOrEmpty(r.Event)) Console.WriteLine($"Event: {r.Event}");
@@ -91,22 +92,27 @@ namespace NoizeBot {
                     foreach (var (k, v) in r.Error) {
                         Console.WriteLine($"ERROR: {k}:{v}");
                     }
+                Interlocked.Exchange(ref lastResponse, DateTimeOffset.UtcNow.UtcTicks);
             };
             if (_configuration.Verbose) socket.OnJsonMessage += Console.WriteLine;
             await socket.Authenticate(_configuration.Token);
             
-            async Task Auth() {
+            async Task Ping() {
                 while (!_cancellationToken.IsCancellationRequested) {
-                    await Task.Delay(TimeSpan.FromMinutes(5));
-                    Console.WriteLine("Reauth");
-                    await socket.Authenticate(_configuration.Token);
+                    await socket.GetStatuses();
+                    await Task.Delay(TimeSpan.FromMinutes(1), _cancellationToken);
+                    var ticks = Interlocked.Read(ref lastResponse);
+                    var lr = new DateTimeOffset(ticks, TimeSpan.Zero);
+                    var age = DateTimeOffset.UtcNow - lr;
+                    if(age.TotalSeconds > 120) throw new TimeoutException("Websocket failed to respond.");
+                    await Task.Delay(TimeSpan.FromMinutes(10), _cancellationToken);
                 }
             }
 
-            var authTaks = Auth();
+            var pingTask = Ping();
             var processingTask = Process();
             var listenTask = socket.Listen();
-            await Task.WhenAny(processingTask, listenTask, authTaks);
+            await Task.WhenAny(processingTask, listenTask, pingTask);
         }
         private static async Task Process() {
             Regex ignoreChannelsRegex = null;

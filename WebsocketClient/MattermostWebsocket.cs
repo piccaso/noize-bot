@@ -56,7 +56,7 @@ namespace WebsocketClient {
             if (_socket.State == WebSocketState.Open) return;
             await _socket.ConnectAsync(_socketUrl, _cancellationToken);
         }
-
+        
         private async Task SendAsync(string message) {
             await ConnectAsync();
             var buffer = _encoding.GetBytes(message);
@@ -70,6 +70,14 @@ namespace WebsocketClient {
                 Data = new WebSocketRequestData {
                     Token = token
                 },
+                Seq = NextSeq(),
+            };
+            await SendAsync(Serialize(msg));
+        }
+        
+        public async Task GetStatuses() {
+            var msg = new WebSocketRequest {
+                Action = "get_statuses",
                 Seq = NextSeq(),
             };
             await SendAsync(Serialize(msg));

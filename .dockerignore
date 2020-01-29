@@ -1,3 +1,5 @@
 docker-compose.*
 Dockerfile
 .git*
+obj/
+bin/
