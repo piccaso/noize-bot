@@ -30,7 +30,7 @@ namespace NoizeBot {
             } catch (Exception e) {
                 if (_cancellationToken.IsCancellationRequested) {
                     Console.WriteLine(e.Message);
-                    Environment.Exit(-1);
+                    Environment.Exit(1024);
                 }
 
                 throw;
@@ -86,8 +86,8 @@ namespace NoizeBot {
             socket.OnBotUserId += id => { BotUserId = id; };
             long lastResponse = 0;
             socket.OnWebSocketResponse += r => {
-                if (!string.IsNullOrEmpty(r.Status)) Console.WriteLine($"Status: {r.Status}");
-                if (!string.IsNullOrEmpty(r.Event)) Console.WriteLine($"Event: {r.Event}");
+                if (!string.IsNullOrEmpty(r.Status)) Console.WriteLine($"Status: {r.Status} seq={r.SeqReply}");
+                if (!string.IsNullOrEmpty(r.Event)) Console.WriteLine($"Event: {r.Event} seq={r.Seq}");
                 if (r.Error != null && r.Error.Any())
                     foreach (var (k, v) in r.Error) {
                         Console.WriteLine($"ERROR: {k}:{v}");
@@ -104,7 +104,7 @@ namespace NoizeBot {
                     var ticks = Interlocked.Read(ref lastResponse);
                     var lr = new DateTimeOffset(ticks, TimeSpan.Zero);
                     var age = DateTimeOffset.UtcNow - lr;
-                    if(age.TotalSeconds > 120) throw new TimeoutException("Websocket failed to respond.");
+                    if(age.TotalSeconds > 120) throw new TimeoutException($"Websocket failed to respond. age={age}");
                     await Task.Delay(TimeSpan.FromMinutes(10), _cancellationToken);
                 }
             }
@@ -112,7 +112,8 @@ namespace NoizeBot {
             var pingTask = Ping();
             var processingTask = Process();
             var listenTask = socket.Listen();
-            await Task.WhenAny(processingTask, listenTask, pingTask);
+            var endedTask  = await Task.WhenAny(processingTask, listenTask, pingTask);
+            await endedTask;
         }
         private static async Task Process() {
             Regex ignoreChannelsRegex = null;
