@@ -48,12 +48,14 @@ register(/:penguin:/i, 'tracks/linus.mp3');
 register(/:doughnut:|homer|^doh$/i, 'tracks/doh.mp3');
 register(/shorts/i, 'tracks/shorts.mp3');
 register(/:alien:/i, 'tracks/alien.mp3');
+register(/:metal:/i, 'tracks/metal.mp3');
 register(/:broken_heart:/i, 'tracks/glass.mp3');
 register(/running/i, 'tracks/running.mp3');
 register(/^run(|!)$/i, 'tracks/run.mp3');
 register(/^help(|!)|:hospital:$/i, 'tracks/help.mp3');
 
 // Commands - regex must match a full message
+match(/do+cksa+l/i, () => reply(':metal:'));
 match(/^nb_say ([\s\S]*)$/i, m => tts(m[1]));
 match(/^google_say ([\s\S]*)$/i, m => googleTts(m[1], "en"));
 match(/^google_(sag|sprich) ([\s\S]*)$/i, m => googleTts(m[2], "de"));
