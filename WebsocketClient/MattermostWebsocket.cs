@@ -74,13 +74,27 @@ namespace WebsocketClient {
             };
             await SendAsync(Serialize(msg));
         }
-        
-        public async Task GetStatuses() {
+
+        public async Task<WebSocketResponse> GetStatusesAsync(int millisecondsTimeout) {
+            WebSocketResponse response = null;
+            var seq = NextSeq();
             var msg = new WebSocketRequest {
                 Action = "get_statuses",
-                Seq = NextSeq(),
+                Seq = seq,
             };
+            var sem = new SemaphoreSlim(0);
+
+            void OnWebSocketResponseAction(WebSocketResponse r) {
+                if(r.SeqReply != seq) return;
+                response = r;
+                sem.Release();
+            }
+
+            OnWebSocketResponse += OnWebSocketResponseAction;
             await SendAsync(Serialize(msg));
+            await sem.WaitAsync(millisecondsTimeout, _cancellationToken);
+            OnWebSocketResponse -= OnWebSocketResponseAction;
+            return response;
         }
 
         private async Task<string> ReceiveAsync() {

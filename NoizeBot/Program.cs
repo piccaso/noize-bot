@@ -65,10 +65,10 @@ namespace NoizeBot {
             socket.OnPosted += e => {
                 Console.WriteLine($"{e.ChannelDisplayName}> {e.Post.Message}");
                 if (BotUserId == e.Post.UserId) return;
-                void reply(string message) => Processing.CreatePost(message, e.Post.ChannelId, e.Post.GetReplyPostId());
+                void Reply(string message) => Processing.CreatePost(message, e.Post.ChannelId, e.Post.GetReplyPostId());
                 if (e.Post.Message.Equals("nb_kill", StringComparison.InvariantCultureIgnoreCase)) {
                     try {
-                        reply(":dizzy_face:");
+                        Reply(":dizzy_face:");
                     } finally {
                         KillMe();
                     }
@@ -77,14 +77,13 @@ namespace NoizeBot {
                     try {
                         Processing.KillRunningProcess?.Invoke();
                     } catch (Exception ex) {
-                        reply($"Failed... {ex.Message}");
+                        Reply($"Failed... {ex.Message}");
                     }
                 }
                 PostedChannel.Writer.WriteAsync(e, _cancellationToken).GetAwaiter().GetResult();
             };
             socket.OnHello += sv => { Console.WriteLine($"ServerVersion: {sv}"); };
             socket.OnBotUserId += id => { BotUserId = id; };
-            long lastResponse = 0;
             socket.OnWebSocketResponse += r => {
                 if (!string.IsNullOrEmpty(r.Status)) Console.WriteLine($"Status: {r.Status} seq={r.SeqReply}");
                 if (!string.IsNullOrEmpty(r.Event)) Console.WriteLine($"Event: {r.Event} seq={r.Seq}");
@@ -92,28 +91,23 @@ namespace NoizeBot {
                     foreach (var (k, v) in r.Error) {
                         Console.WriteLine($"ERROR: {k}:{v}");
                     }
-                Interlocked.Exchange(ref lastResponse, DateTimeOffset.UtcNow.UtcTicks);
             };
             if (_configuration.Verbose) socket.OnJsonMessage += Console.WriteLine;
             await socket.Authenticate(_configuration.Token);
-            
-            async Task Ping() {
-                while (!_cancellationToken.IsCancellationRequested) {
-                    await socket.GetStatuses();
-                    await Task.Delay(TimeSpan.FromMinutes(1), _cancellationToken);
-                    var ticks = Interlocked.Read(ref lastResponse);
-                    var lr = new DateTimeOffset(ticks, TimeSpan.Zero);
-                    var age = DateTimeOffset.UtcNow - lr;
-                    if(age.TotalSeconds > 120) throw new TimeoutException($"Websocket failed to respond. age={age}");
-                    await Task.Delay(TimeSpan.FromMinutes(10), _cancellationToken);
-                }
-            }
 
-            var pingTask = Ping();
+            var pingTask = Ping(socket);
             var processingTask = Process();
             var listenTask = socket.Listen();
             var endedTask  = await Task.WhenAny(processingTask, listenTask, pingTask);
             await endedTask;
+        }
+        private static async Task Ping(MattermostWebsocket socket) {
+            while (!_cancellationToken.IsCancellationRequested) {
+                var statuses = await socket.GetStatusesAsync(2000);
+                if (statuses == null) throw new TimeoutException("Timeout getting statuses");
+                if (statuses.Status != "OK") throw new Exception("Websocket Error");
+                await Task.Delay(TimeSpan.FromMinutes(10), _cancellationToken);
+            }
         }
         private static async Task Process() {
             Regex ignoreChannelsRegex = null;
