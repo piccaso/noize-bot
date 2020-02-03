@@ -93,11 +93,14 @@ namespace NoizeBot {
                     }
             };
             if (_configuration.Verbose) socket.OnJsonMessage += Console.WriteLine;
+            
             await socket.Authenticate(_configuration.Token);
 
+            var listenTask = socket.Listen();
             var pingTask = Ping(socket);
             var processingTask = Process();
-            var listenTask = socket.Listen();
+            
+            // Tasks only finish if there is something wrong
             var endedTask  = await Task.WhenAny(processingTask, listenTask, pingTask);
             await endedTask;
         }
@@ -106,7 +109,8 @@ namespace NoizeBot {
                 var statuses = await socket.GetStatusesAsync(2000);
                 if (statuses == null) throw new TimeoutException("Timeout getting statuses");
                 if (statuses.Status != "OK") throw new Exception("Websocket Error");
-                await Task.Delay(TimeSpan.FromMinutes(10), _cancellationToken);
+                if (string.IsNullOrWhiteSpace(BotUserId)) throw new Exception("bot user id unknown");
+                await Task.Delay(TimeSpan.FromMinutes(5), _cancellationToken);
             }
         }
         private static async Task Process() {

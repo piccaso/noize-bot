@@ -82,11 +82,12 @@ namespace WebsocketClient {
                 Action = "get_statuses",
                 Seq = seq,
             };
-            var sem = new SemaphoreSlim(0);
+            using var sem = new SemaphoreSlim(0);
 
             void OnWebSocketResponseAction(WebSocketResponse r) {
                 if(r.SeqReply != seq) return;
                 response = r;
+                // ReSharper disable once AccessToDisposedClosure - its not true!
                 sem.Release();
             }
 
