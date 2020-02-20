@@ -9,7 +9,7 @@ services:
 #      ServerUri: "https://mattermost.mydomain.tld/",
 #      Token: "<bot auth token>"
 #      IgnoreChannelsRegex: "office|town-square"
-    restart: on-failure
+    restart: always
     read_only: true
     cap_drop:
       - ALL
