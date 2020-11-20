@@ -151,13 +151,15 @@ namespace WebsocketClient {
 
     public static class WebSocketResponseExtensions {
         public static bool TryGetData(this WebSocketResponse r, string @event, string key, out string data) {
-            data = null;
-            return r?.Data != null && r.Event == @event && r.Data.TryGetValue(key, out data);
+            object dobj = null;
+            var ret = r?.Data != null && r.Event == @event && r.Data.TryGetValue(key, out dobj);
+            data = dobj?.ToString();
+            return ret && data != null;
         }
 
         public static string GetDataOrDefault(this WebSocketResponse r, string key) {
             if (r?.Data != null && r.Data.TryGetValue(key, out var data)) {
-                return data;
+                return data.ToString();
             }
 
             return null;

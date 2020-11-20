@@ -14,7 +14,7 @@ namespace WebsocketClient {
     public class WebSocketResponse {
         public string Status { get; set; }
         public string Event { get; set; }
-        public Dictionary<string, string> Data { get; set; }
+        public Dictionary<string, object> Data { get; set; }
         public Dictionary<string, string> Broadcast { get; set; }
         public Dictionary<string, string> Error { get; set; }
         public long Seq { get; set; }
