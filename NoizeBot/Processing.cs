@@ -1,6 +1,9 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Net;
+using System.Net.Sockets;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -39,7 +42,8 @@ namespace NoizeBot {
                     repl = _configuration.Repl,
                     channel = channelDisplayName,
                     channelId,
-                    postId = rootPostId
+                    postId = rootPostId,
+                    ips = GetLocalAddressList()
                 }.ToHumanReadableJson();
             });
             var engine = new Engine();
@@ -157,6 +161,16 @@ namespace NoizeBot {
                 Post.Create(api, channelId, message, rootId).GetAwaiter().GetResult();
             } catch (Exception e) {
                 Console.WriteLine(e.ToString());
+            }
+        }
+        public static IEnumerable<string> GetLocalAddressList()
+        {
+            var hostname = Dns.GetHostName();
+            yield return hostname;
+            var host = Dns.GetHostEntry(hostname);
+            foreach (var ip in host.AddressList)
+            {
+                yield return ip.ToString();
             }
         }
     }
